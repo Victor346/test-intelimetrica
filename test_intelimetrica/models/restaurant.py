@@ -94,13 +94,15 @@ def create_new_restaurant(args):
                                                        args['state'], args['lat'], args['lng'])
 
     sql_query.encode(encoding='UTF-8', errors='strict')
+    print(sql_query)
     # Perform query
     try:
         my_cur.execute(sql_query)
-    except(Exception):
+    except Exception as e:
+        print(e)
         db_connection.rollback()
         release_db_connection(db_connection)
-        return
+        raise Exception("Error in query execution")
 
     db_connection.commit()
     # Release the db connection
@@ -275,3 +277,52 @@ def delete_one_restaurant(id):
     # Release the db connection
     release_db_connection(db_connection)
     return
+
+
+# Function to obtain restaurants within radius from the given values of latitude, longitude and radius in meters
+# This function returns an array with a dictionary containing all restaurants within the radius
+def search_radius(latitude, longitude, radius):
+    # Ask for a database connection from the pool
+    db_connection = get_db_connection()
+
+    # Create a cursor for this connection
+    my_cur = db_connection.cursor()
+
+    # Create the sql query
+    sql_query = '''SELECT * FROM Restaurants WHERE ST_DWithin(
+        ST_Point(Restaurants.lat, Restaurants.lng)::geography,
+        ST_Point({}, {})::geography,
+        {});'''.format(latitude, longitude, radius)
+
+    # Perform query
+    try:
+        my_cur.execute(sql_query)
+    except:
+        db_connection.rollback()
+        release_db_connection(db_connection)
+        return
+    # Retrieve all the restaurants withing the circle
+    restaurants = my_cur.fetchall()
+
+    list_restaurants = []
+    # Append them in an ordained form inside the list to return
+    for restaurant in restaurants:
+        # Create a dictionary for each restaurant
+        dict_restaurant = {'id': restaurant[0],
+                           'rating': restaurant[1],
+                           'name': restaurant[2],
+                           'site': restaurant[3],
+                           'email': restaurant[4],
+                           'phone': restaurant[5],
+                           'street': restaurant[6],
+                           'city': restaurant[7],
+                           'state': restaurant[8],
+                           'lat': restaurant[9],
+                           'lng': restaurant[10]}
+        # append it to the list
+        list_restaurants.append(dict_restaurant)
+
+    db_connection.commit()
+    # Release the db connection
+    release_db_connection(db_connection)
+    return list_restaurants
