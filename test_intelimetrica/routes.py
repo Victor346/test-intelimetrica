@@ -3,6 +3,9 @@ from .models.restaurant import get_all_restaurants as get_restaurants_db
 from .models.restaurant import create_new_restaurant as create_new_restaurant_db
 from .models.restaurant import update_all_restaurants as update_all_restaurants_db
 from .models.restaurant import erase_all_restaurants as erase_all_restaurants_db
+from .models.restaurant import get_one_restaurant
+from .models.restaurant import update_one_restaurant
+from .models.restaurant import delete_one_restaurant
 from flask import jsonify, request
 
 
@@ -46,6 +49,10 @@ def create_new_restaurant():
 @app.route('/api/restaurants', methods=['PUT'])
 def update_all_restaurants():
     try:
+        # Checks if any parameters were passed and if not it raises an exception
+        if len(request.args) == 0:
+            return {'message': 'No parameters were passed'}, 400
+
         update_all_restaurants_db(request.args)
     except:
         # TODO: Handle each database exception properly
@@ -62,6 +69,42 @@ def delete_all_restaurants():
     return {'message': 'Successfully erased all restaurant entries.'}
 
 
-@app.route('/', methods=['GET'])
-def hello():
-    return 'Hello World!'
+# This route will only accept the GET http verb
+# This route is used to obtain the information of a certain restaurant that is identified by its id
+@app.route('/api/restaurants/<id>', methods=['GET'])
+def retrieve_restaurant(id):
+    # Get restaurant from the database
+    try:
+        restaurant = get_one_restaurant(id)
+    except:
+        return {'message': 'Internal Server Error'}, 500
+    # Send the restaurant back
+    return jsonify(restaurant)
+
+
+# This route will only accept the PUT http verb
+# This route is used to update the information of a certain restaurant that is identified by its id
+@app.route('/api/restaurants/<id>', methods=['PUT'])
+def update_restaurant(id):
+    try:
+        # Checks if any parameters were passed and if not it raises an exception
+        if len(request.args) == 0:
+            return {'message': 'No parameters were passed'}, 400
+
+        update_one_restaurant(request.args, id)
+    except:
+        # TODO: Handle each database exception properly
+        return {'message': 'Internal Server Error'}, 500
+    return {'message': 'Restaurant with id {} has been updated'.format(id)}
+
+
+# This route will only accept the DELETE http verb
+# This route is used to update the information of a certain restaurant that is identified by its id
+@app.route('/api/restaurants/<id>', methods=['DELETE'])
+def delete_restaurant(id):
+    try:
+        delete_one_restaurant(id)
+    except:
+        # TODO: Handle each database exception properly
+        return {'message': 'Internal Server Error'}, 500
+    return {'message': 'Restaurant with id {} has been updated'.format(id)}

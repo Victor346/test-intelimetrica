@@ -17,14 +17,5 @@ rows = cur.fetchall()
 for row in rows:
     print("COSA =", row[2])
 
-"""
-'''CREATE TABLE STUDENT
-              (ADMISSION INT PRIMARY KEY     NOT NULL,
-              NAME           TEXT    NOT NULL,
-              AGE            INT     NOT NULL,
-              COURSE        CHAR(50),
-              DEPARTMENT        CHAR(50));'''
-"""
-
 con.commit()
 con.close()

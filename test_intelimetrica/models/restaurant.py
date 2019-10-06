@@ -4,7 +4,7 @@ import time
 from .database_pool import get_db_connection, release_db_connection
 
 
-# Function used to return all the restaurants in a array of dictionaries
+# Function used to obtain all the restaurants in a array of dictionaries
 def get_all_restaurants(args):
     # Ask for a database connection from the pool
     db_connection = get_db_connection()
@@ -78,6 +78,7 @@ def get_all_restaurants(args):
     return list_restaurants
 
 
+# Function to create a new restaurant
 def create_new_restaurant(args):
     # Ask for a database connection from the pool
     db_connection = get_db_connection()
@@ -107,6 +108,7 @@ def create_new_restaurant(args):
     return
 
 
+# Function to bulk update all restaurants information
 def update_all_restaurants(args):
     # Ask for a database connection from the pool
     db_connection = get_db_connection()
@@ -142,6 +144,7 @@ def update_all_restaurants(args):
     return
 
 
+# Function to delete all the restaurants in the database
 def erase_all_restaurants():
     # Ask for a database connection from the pool
     db_connection = get_db_connection()
@@ -151,6 +154,114 @@ def erase_all_restaurants():
 
     # Create the sql query
     sql_query = '''DELETE FROM Restaurants;'''
+
+    # Perform query
+    try:
+        my_cur.execute(sql_query)
+    except:
+        db_connection.rollback()
+        release_db_connection(db_connection)
+        return
+
+    db_connection.commit()
+    # Release the db connection
+    release_db_connection(db_connection)
+    return
+
+
+# Function to obtain the information of a particular restaurant identified by id
+def get_one_restaurant(id):
+    # Ask for a database connection from the pool
+    db_connection = get_db_connection()
+
+    # Create a cursor for this connection
+    my_cur = db_connection.cursor()
+
+    # Create the sql query
+    # In this case the only identifier for the restaurant query must be the id so no other filter must be applied
+    sql_query = '''SELECT * FROM Restaurants WHERE id = \'{}\';'''.format(id)
+
+    # Perform query
+    try:
+        my_cur.execute(sql_query)
+    except:
+        db_connection.rollback()
+        release_db_connection(db_connection)
+        return
+
+    db_connection.commit()
+    # Release the db connection
+    restaurant_as_list = my_cur.fetchall()
+    try:
+        restaurant = restaurant_as_list[0]
+    except:
+        raise Exception('No restaurant with given id')
+        db_connection.rollback()
+        release_db_connection(db_connection)
+        return
+    restaurant_dict = {'id': restaurant[0],
+                       'rating': restaurant[1],
+                       'name': restaurant[2],
+                       'site': restaurant[3],
+                       'email': restaurant[4],
+                       'phone': restaurant[5],
+                       'street': restaurant[6],
+                       'city': restaurant[7],
+                       'state': restaurant[8],
+                       'lat': restaurant[9],
+                       'lng': restaurant[10]}
+    release_db_connection(db_connection)
+    return restaurant_dict
+
+
+# Function to update the information of a particular restaurant identified by id
+def update_one_restaurant(args, id):
+    # Ask for a database connection from the pool
+    db_connection = get_db_connection()
+
+    # Create a cursor for this connection
+    my_cur = db_connection.cursor()
+
+    final_query = ''
+    # Create the sql query
+    sql_query = '''UPDATE Restaurants SET '''
+    final_query = final_query + sql_query
+
+    # Update all columns for every argument in the request
+    for key in args.keys():
+        # This if is necessary to handle numeric and text data differently
+        if key == 'rating' or key == 'lat' or key == 'lng':
+            final_query = final_query + '{} = {} '.format(key, args[key])
+        else:
+            final_query = final_query + '{} = \'{}\' '.format(key, args[key])
+
+    final_query = final_query + 'WHERE id = \'{}\';'.format(id)
+
+    print(final_query)
+    # Perform query
+    try:
+        my_cur.execute(final_query)
+    except(Exception):
+        db_connection.rollback()
+        release_db_connection(db_connection)
+        return
+
+    db_connection.commit()
+    # Release the db connection
+    release_db_connection(db_connection)
+    return
+
+
+# Function to delete a particular restaurant identified by id
+def delete_one_restaurant(id):
+    # Ask for a database connection from the pool
+    db_connection = get_db_connection()
+
+    # Create a cursor for this connection
+    my_cur = db_connection.cursor()
+
+    # Create the sql query
+    sql_query = '''DELETE FROM Restaurants WHERE id = \'{}\';'''.format(id)
 
     # Perform query
     try:
