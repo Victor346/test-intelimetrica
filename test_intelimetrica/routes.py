@@ -144,11 +144,11 @@ def delete_restaurant(id):
     return {'message': 'Restaurant with id {} has been deleted'.format(id)}
 
 
-# This route will only accept the DELETE http verb
-# This route is used to update the information of a certain restaurant that is identified by its id
-# Example request [DELETE /api/restaurants/030eaf75-da6e-4748-9727-f2704f831498]
-# Example response: Success: {'message': 'Restaurant with id 030eaf75-da6e-4748-9727-f2704f831498 has been deleted'}
-#                   Fail: {'message': 'Internal Server Error'}
+# This route will only accept the GET http verb
+# This route is used to obtain the statistic information of the restaurants contained in a radius
+# Example request [GET /restaurants/statistics/?latitude=19.4380931173689&longitude=-99.1334110923394&radius=4500]
+# Example response: Success: {"avg": 1.72, "count": 100, "std": 1.4496896219536104}
+#                   Fail: {'message': 'Internal Server Error'} or {'message': 'Missing parameters'}
 @app.route('/restaurants/statistics', methods=['GET'])
 def radius_search_statistics():
     if ('latitude' in request.args) and ('longitude' in request.args) and ('radius' in request.args):
@@ -163,9 +163,9 @@ def radius_search_statistics():
     except:
         # TODO: Handle each database exception properly
         return {'message': 'Internal Server Error'}, 500
-    # Check if there are restaurants within the circle
+    # Check if there are restaurants within the circle if not return a count of 0 and N/A for all other parameters
     if len(list_restaurants) == 0:
-        return {'message': 'There are no restaurants in the specified area'}, 400
+        return {'count': 0, 'avg': 'N/A', 'std': 'N/A'}, 400
 
     # Once obtained the list with the required restaurants we can statistically analyze them
     # Obtain the average using the function in the utils module
