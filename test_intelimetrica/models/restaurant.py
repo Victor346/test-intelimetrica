@@ -1,6 +1,3 @@
-import psycopg2
-import os
-import time
 from .database_pool import get_db_connection, release_db_connection
 
 

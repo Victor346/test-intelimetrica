@@ -1,6 +1,5 @@
 import psycopg2
 import os
-import csv
 
 connection_url = os.environ['DATABASE_URL']
 print('Connection URI:' + connection_url)
