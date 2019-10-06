@@ -1,1 +1,1 @@
-web gunicorn test-intelimetrica:test_intelimetrica
+web gunicorn test_intelimetrica
